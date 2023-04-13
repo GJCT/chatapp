@@ -1,6 +1,9 @@
+import 'package:chatapp/helpers/alert.dart';
+import 'package:chatapp/providers/auth.dart';
 import 'package:flutter/material.dart';
 
 import 'package:chatapp/widgets/widgets.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatelessWidget {
    
@@ -51,6 +54,9 @@ class _FormState extends State<_Form> {
 
   @override
   Widget build(BuildContext context) {
+
+    final authProvider = Provider.of<AuthProvider>(context);
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10),
       padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -71,8 +77,28 @@ class _FormState extends State<_Form> {
           ),
           ButtonBlue(
             text: 'Ingresar',
-            onPressed: () {
+            onPressed: () async{
+              //desaparece el teclado
+              FocusScope.of(context).unfocus();
 
+              final okLogin = await authProvider.login(
+                emailCtrl.text.trim(), 
+                passCtrl.text.trim()
+              );
+
+              if(okLogin){
+                //Conectar al socket
+
+                //Navegar a la proxima pantalla
+                Navigator.pushReplacementNamed(context, 'usuarios');
+              }else {
+                //Mostrar alertas de errores
+                mostrarAlert(
+                  context, 
+                  'Inicio de sesión anulado', 
+                  'Revise las credenciales'
+                );
+              }
             },
           )
         ],

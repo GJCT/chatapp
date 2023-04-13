@@ -18,7 +18,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   final _textController = TextEditingController();
   final _focusNode = FocusNode();
 
-  List<ChatMessage> _messages = [];
+  final List<ChatMessage> _messages = [];
 
   bool _escribiendo = false;
 
@@ -31,16 +31,16 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         title: Row(
           children: [
             CircleAvatar(
-              child: Text('Test', style: TextStyle(fontSize: 14)),
+              child: const Text('Test', style: TextStyle(fontSize: 14)),
               backgroundColor: Colors.blueAccent[400],
               maxRadius: 23,
             ),
             const SizedBox(width: 10),
-            Text('Usuario', style: TextStyle(color: Colors.black54, fontWeight: FontWeight.bold),)
+            const Text('Usuario', style: TextStyle(color: Colors.black54, fontWeight: FontWeight.bold),)
           ],
         ),
       ),
-      body: Container(
+      body: SizedBox(
          child: Column(
           children: [
             Flexible(
@@ -87,7 +87,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     }
                   });
                 },
-                decoration: InputDecoration.collapsed(
+                decoration: const InputDecoration.collapsed(
                   hintText: 'Hablemos',
                 ),
                 focusNode: _focusNode,
@@ -96,19 +96,19 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             
             //Botón para enviar mensaje
             Container(
-              margin: EdgeInsets.symmetric(horizontal: 4),
+              margin: const EdgeInsets.symmetric(horizontal: 4),
               child: Platform.isAndroid 
               ? IconButton(
                 highlightColor: Colors.transparent,
                 splashColor: Colors.transparent,
-                icon: Icon(Icons.send_rounded),
+                icon: const Icon(Icons.send_rounded),
                 color: Colors.blue[900],
                 onPressed: _escribiendo ? 
                 () => _submitText(_textController.text.trim()) 
                 : null,
               ) 
               : CupertinoButton(
-                child: Text('Enviar'), 
+                child: const Text('Enviar'), 
                 onPressed: _escribiendo ? 
                 () => _submitText(_textController.text.trim()) 
                 : null,
@@ -145,7 +145,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
   @override
   void dispose() {
-    // TODO: off del socket
+    //off del socket
 
     for(ChatMessage message in _messages){
       message.animation.dispose();
