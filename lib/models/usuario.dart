@@ -16,7 +16,7 @@ class Usuario {
         required this.uid,
     });
 
-    bool? online;
+    bool online;
     String nombre;
     String correo;
     String uid;

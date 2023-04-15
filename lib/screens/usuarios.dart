@@ -1,8 +1,8 @@
-import 'package:chatapp/providers/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
+import 'package:chatapp/providers/provider.dart';
 import 'package:chatapp/models/usuario.dart';
 
 class UsuariosScreen extends StatefulWidget {
@@ -15,27 +15,34 @@ class UsuariosScreen extends StatefulWidget {
 
 class _UsuariosScreenState extends State<UsuariosScreen> {
 
-  final RefreshController _refreshController = RefreshController(initialRefresh: false);
+  RefreshController _refreshController = RefreshController(initialRefresh: false);
+  final usuariosProvider = UsuariosProvider();
 
-  final usuarios = [ 
-    Usuario(online: true, nombre: 'Gabriel', correo: 'test@test.com', uid: '1'),
-    Usuario(online: false, nombre: 'Mario', correo: 'test1@test.com', uid: '2'),
-    Usuario(online: true, nombre: 'Pedro', correo: 'test2@test.com', uid: '3'),
-    ];
+  List<Usuario> usuarios = [];
+
+  @override
+  void initState() {
+    _cargarUsuarios();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
 
     final authProvider = Provider.of<AuthProvider>(context);
+    final socketProvider = Provider.of<SocketProvider>(context);
     final usuario = authProvider.usuario;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(usuario.nombre, style: TextStyle(color: Colors.black54)),
+        title: Text(usuario.nombre, style: const TextStyle(color: Colors.black54)),
         backgroundColor: const Color(0xaaA4F4F4),
         leading: IconButton(
           icon: const Icon(Icons.logout_rounded, color: Colors.black54),
           onPressed: (){
             //Desconectarse del socket 
+            socketProvider.disconnect();
+            //Navegación al login al desconectarse
             Navigator.pushReplacementNamed(context, 'login');
             AuthProvider.logoutToken();
           },
@@ -43,8 +50,9 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
         actions: [
           Container(
             margin: const EdgeInsets.only(right: 10),
-            child: Icon(Icons.check_circle_rounded, color: Colors.blue[300]),
-            //child: Icon(Icons.cancel_rounded, color: Colors.red[300]),
+            child: (socketProvider.serverStatus == ServerStatus.Online) ? 
+            Icon(Icons.check_circle_rounded, color: Colors.blue[300])
+            : Icon(Icons.cancel_rounded, color: Colors.red[300]),
           )
         ],
       ),
@@ -82,14 +90,22 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
           width: 10,
           height: 10,
           decoration: BoxDecoration(
-            color: usuario.online! ? Colors.green : Colors.red,
+            color: usuario.online ? Colors.green : Colors.red,
             borderRadius: BorderRadiusDirectional.circular(5)
           ),
         ),
+        onTap: (){
+          final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+          chatProvider.usuarioMsg = usuario;
+          Navigator.pushNamed(context, 'chat');
+        },
       );
   }
 
   _cargarUsuarios() async{
+
+    usuarios = await usuariosProvider.getUsuarios();
+    setState(() {});
     await Future.delayed(const Duration(milliseconds: 1000));
     _refreshController.refreshCompleted();
   }

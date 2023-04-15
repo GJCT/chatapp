@@ -1,5 +1,5 @@
 import 'package:chatapp/helpers/alert.dart';
-import 'package:chatapp/providers/auth.dart';
+import 'package:chatapp/providers/provider.dart';
 import 'package:flutter/material.dart';
 
 import 'package:chatapp/widgets/widgets.dart';
@@ -56,6 +56,7 @@ class _FormState extends State<_Form> {
   Widget build(BuildContext context) {
 
     final authProvider = Provider.of<AuthProvider>(context);
+    final socketProvider = Provider.of<SocketProvider>(context);
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10),
@@ -88,7 +89,7 @@ class _FormState extends State<_Form> {
 
               if(okLogin){
                 //Conectar al socket
-
+                socketProvider.connect();
                 //Navegar a la proxima pantalla
                 Navigator.pushReplacementNamed(context, 'usuarios');
               }else {

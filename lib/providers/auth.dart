@@ -1,9 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'dart:convert';
 
 import 'package:chatapp/global/environment..dart';
+
 import 'package:chatapp/models/login.dart';
 import 'package:chatapp/models/usuario.dart';
 
@@ -20,13 +22,13 @@ class AuthProvider with ChangeNotifier{
   // Crear instancias del storage
   final _storage = const FlutterSecureStorage();
   //Getter's Static
-  static Future<String?> getToken() async{
-    const  _storage = FlutterSecureStorage();
+  static Future<String> getToken() async{
+    final  _storage = FlutterSecureStorage();
     final token = await _storage.read(key: 'token');
-    return token;
+    return token!;
   }
   static Future<void> logoutToken() async{
-    const  _storage = FlutterSecureStorage();
+    final _storage = FlutterSecureStorage();
     await _storage.delete(key: 'token');
   }
 
@@ -37,7 +39,7 @@ class AuthProvider with ChangeNotifier{
       'correo': email,
       'password': password
     };
-
+   
     final url = Uri.parse('${Environment.apiUrl}/login');
     final res = await http.post(url, 
       body: jsonEncode(data),
@@ -45,15 +47,13 @@ class AuthProvider with ChangeNotifier{
         'Content-Type': 'application/json'
       }
     );
-
     autenticando = false;
     if(res.statusCode == 200){
       final loginResponse = loginResponseFromJson(res.body);
       usuario = loginResponse.usuario;
-
       //Almacenar el token
       await _saveToken(loginResponse.token);
-
+      
       return true;
     }else {
 
@@ -81,11 +81,10 @@ class AuthProvider with ChangeNotifier{
 
       autenticando = false;
       if(res.statusCode == 200){
-        final registerResponse = loginResponseFromJson(res.body);
-        usuario = registerResponse.usuario;
-
+        final loginResponse = loginResponseFromJson(res.body);
+        usuario = loginResponse.usuario;
         //Se almacena el token
-        await _saveToken(registerResponse.token);
+        await _saveToken(loginResponse.token);
         return true;
       }else {
         final resBody = jsonDecode(res.body);
@@ -94,24 +93,24 @@ class AuthProvider with ChangeNotifier{
   }
 
   Future<bool> isLoggedIn() async{
-    final token = await _storage.read(key: 'token');
+    final token = await _storage.read(key: 'token') ?? '';
 
     final url = Uri.parse('${Environment.apiUrl}/token');
     final res = await http.get(url,
         headers: {
           'Content-Type': 'application/json',
-          'x-token': token!
+          'Authorization': token
         }
       );
 
       if(res.statusCode == 200){
-        final tokenResponse = loginResponseFromJson(res.body);
-        usuario = tokenResponse.usuario;
+        final loginResponse = loginResponseFromJson(res.body);
+        usuario = loginResponse.usuario;
         //Se almacena el token
-        await _saveToken(tokenResponse.token);
+        await _saveToken(loginResponse.token);
         return true;
       }else {
-        logoutToken();
+       _deleteToken();
         return false;
       }
   }
@@ -122,6 +121,6 @@ class AuthProvider with ChangeNotifier{
   }
   Future _deleteToken() async{
     //Eliminar el token al cerrar 
-    return await _storage.delete(key: 'token');
+    await _storage.delete(key: 'token');
   }
 }
